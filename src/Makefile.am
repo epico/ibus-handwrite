@@ -49,6 +49,7 @@ ibus_engine_handwrite_SOURCES =  main.c	\
 				UI.h \
 				xgrab.c \
 				xgrab.h \
+				poste.c \
 				$(NULL)
 
 
