@@ -154,22 +154,7 @@ static gboolean on_mouse_move(GtkWidget *widget, GdkEventMotion *event,
 
 		gtk_widget_queue_draw(widget);
 	}
-	else if(event->state & GDK_BUTTON2_MASK)
-	{
-		// change size
-		width += event->x - engine->lastpoint.x;
-		height += event->y - engine->lastpoint.y;
-
-		gtk_window_resize(GTK_WINDOW(engine->drawpanel),width,height);
-
-		g_debug("set size to %d,%d",width,height);
-
-		widget_realize(engine->drawpanel,engine);
-
-		engine->lastpoint.x = event->x;
-		engine->lastpoint.y = event->y;
-	}
-	else if( event->state & (GDK_BUTTON2_MASK |GDK_BUTTON3_MASK ))
+	else if( event->state & GDK_BUTTON3_MASK )
 	{
 		gtk_window_move(GTK_WINDOW(engine->drawpanel),event->x_root -engine->lastpoint.x,event->y_root - engine->lastpoint.y);
 	}
