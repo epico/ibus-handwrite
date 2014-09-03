@@ -41,13 +41,14 @@ libexec_PROGRAMS = ibus-engine-handwrite
 
 ibus_engine_handwrite_SOURCES =  main.c	\
 				engine.c \
-				engine.h\
+				engine.h \
 				global_var.h \
 				handrecog_lucykila.c\
 				handrecog.c \
 				handrecog.h \
 				UI.h \
 				xgrab.c \
+				xgrab.h \
 				$(NULL)
 
 

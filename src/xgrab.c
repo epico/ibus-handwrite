@@ -1,5 +1,3 @@
-#define HAVE_APP_GTK
-
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/Xlib.h>
@@ -11,9 +9,7 @@
 #include <pthread.h>
 #include <glib.h>
 
-#ifdef HAVE_APP_GTK
-#include <gdk/gdkx.h>
-#endif
+#include "xgrab.h"
 
 /* The X11 display name. */
 static const char * x11_display_name = NULL;
@@ -186,7 +182,7 @@ StartXGrab(void * engine)
 
             if (is_aborted)
                 {
-                    return;
+                    return NULL;
                 }
 
             if (gotEvent)
