@@ -9,7 +9,7 @@
 
 typedef struct {
     GdkEventType type;
-    int x, y;
+    double x, y;
     int width, height;
     int button;
 } PointerEvent;

@@ -10,5 +10,6 @@ void UI_buildui(IBusHandwriteEngine * engine);
 void UI_show_ui(IBusHandwriteEngine * engine);
 void UI_hide_ui(IBusHandwriteEngine * engine);
 void UI_cancelui(IBusHandwriteEngine* engine); //Cancel
+void regen_loopuptable(GtkWidget * widget, IBusHandwriteEngine * engine);
 
 #endif /* UI_H_ */

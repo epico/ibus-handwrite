@@ -74,7 +74,7 @@ static gboolean paint_lines(GtkWidget *widget, cairo_t * cr, IBusHandwriteEngine
 	return TRUE;
 }
 
-static void regen_loopuptable(GtkWidget * widget, IBusHandwriteEngine * engine)
+void regen_loopuptable(GtkWidget * widget, IBusHandwriteEngine * engine)
 {
 	int i;
 	MatchedChar *matched;
