@@ -82,9 +82,20 @@ AS_IF([test "x${have_zinnia}" = "xyes" ],[
 		AM_CONDITIONAL(WITH_ZINNIA,[false])		
 ])
 
+#check pthread
+AX_PTHREAD([])
+
 # check ibus
+PKG_CHECK_MODULES(X11, [
+    x11 >= 1.6
+])
+
 PKG_CHECK_MODULES(IBUS, [
     ibus-1.0 >= 1.3
+])
+
+PKG_CHECK_MODULES(GLIB2, [
+    glib-2.0 >= 2.0
 ])
 
 PKG_CHECK_MODULES(GTK3, [
@@ -92,7 +103,7 @@ PKG_CHECK_MODULES(GTK3, [
 ])
 
 PKG_CHECK_MODULES(ALL_NEED, [
-    ibus-1.0 >= 1.2 gtk+-3.0 >= 3.0
+    x11 >= 1.6 ibus-1.0 >= 1.2 gtk+-3.0 >= 3.0
 ])
 
 AM_GNU_GETTEXT([external])

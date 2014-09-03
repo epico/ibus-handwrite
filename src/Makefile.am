@@ -33,9 +33,9 @@ test-jp: ibus-engine-handwrite
 		--locale /tmp/${prefix}/share/locale/ \
 		--lang=jp
 endif		
-AM_CPPFLAGS= @ALL_NEED_CFLAGS@ -DPKGDATADIR=\"$(pkgdatadir)\" -DTABLEFILE=\"$(TABLEFILE)\"
+AM_CPPFLAGS= @ALL_NEED_CFLAGS@ @PTHREAD_CFLAGS@ -DPKGDATADIR=\"$(pkgdatadir)\" -DTABLEFILE=\"$(TABLEFILE)\"
 
-LIBS += @ALL_NEED_LIBS@
+LIBS += @ALL_NEED_LIBS@ @PTHREAD_CFLAGS@
 
 libexec_PROGRAMS = ibus-engine-handwrite
 
@@ -47,17 +47,17 @@ ibus_engine_handwrite_SOURCES =  main.c	\
 				handrecog.c \
 				handrecog.h \
 				UI.h \
+				xgrab.c \
 				$(NULL)
 
 
 ibus_engine_handwrite_SOURCES +=   UI_gtk.c \
- 					  $(NULL)
+					  $(NULL)
 
 if WITH_ZINNIA
 ibus_engine_handwrite_SOURCES +=  handrecog_zinnia.c
 AM_CPPFLAGS += -DWITH_ZINNIA
 endif					  
-					  
 
 component_DATA = handwrite-zh.xml
 if WITH_ZINNIA
