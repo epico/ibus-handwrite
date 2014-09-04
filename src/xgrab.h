@@ -16,6 +16,9 @@ typedef struct {
 
 typedef struct _IBusHandwriteEngine IBusHandwriteEngine;
 
+void
+ToggleXGrab(IBusHandwriteEngine * engine);
+
 gboolean
 PostXEvent(XEvent * event, IBusHandwriteEngine * engine);
 

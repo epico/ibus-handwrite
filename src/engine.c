@@ -5,6 +5,7 @@
 #include "handrecog.h"
 #include "UI.h"
 #include "global_var.h"
+#include "xgrab.h"
 
 #include <libintl.h>
 #define _(String) gettext (String)
@@ -257,6 +258,10 @@ static gboolean ibus_handwrite_engine_process_key_event(IBusEngine *engine,
 	case IBUS_Escape:
 		ibus_handwrite_recog_clear_stroke(handwrite->engine);
 		return TRUE;
+
+	case IBUS_Return:
+	case IBUS_KP_Enter:
+		ToggleXGrab(handwrite);
 	}
 	return FALSE;
 }

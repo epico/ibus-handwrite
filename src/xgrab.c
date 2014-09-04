@@ -11,8 +11,6 @@
 
 #include "xgrab.h"
 
-typedef struct _IBusHandwriteEngine IBusHandwriteEngine;
-
 /* The X11 display name. */
 static const char * x11_display_name = NULL;
 
