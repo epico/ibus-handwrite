@@ -31,6 +31,8 @@ struct _IBusHandwriteEngine
 	LineStroke currentstroke;
 	gboolean	needclear;
 
+	guint width;
+	guint height;
 };
 
 struct _IBusHandwriteEngineClass
