@@ -11,6 +11,8 @@
 
 #include "xgrab.h"
 
+typedef struct _IBusHandwriteEngine IBusHandwriteEngine;
+
 /* The X11 display name. */
 static const char * x11_display_name = NULL;
 
@@ -21,7 +23,7 @@ static Display * x11_display = NULL;
 static Window root_window;
 
 /* thread state */
-static gboolean running;
+/* static gboolean running; */
 
 /* Abort the main loop. */
 static gboolean is_aborted = TRUE;
@@ -32,10 +34,10 @@ static pthread_t thread_id;
 void ErrorTrapEnter();
 void ErrorTrapExit();
 void HandleCreate(XEvent *event);
-void HandleButtonPress(XEvent *event);
-void HandleMotion(XEvent *event);
-void HandleButtonRelease(XEvent *event);
-void ToggleXGrab();
+void HandleButtonPress(XEvent *event, IBusHandwriteEngine * engine);
+void HandleMotion(XEvent *event, IBusHandwriteEngine * engine);
+void HandleButtonRelease(XEvent *event, IBusHandwriteEngine * engine);
+void ToggleXGrab(IBusHandwriteEngine * engine);
 
 #ifndef HAVE_APP_GTK
 static int (*old_handler)(Display *dpy, XErrorEvent *error);
@@ -155,7 +157,7 @@ SetAllEvent(Window window)
 
 
 void *
-StartXGrab(void * engine)
+StartXGrab(IBusHandwriteEngine * engine)
 {
     if ((x11_display = XOpenDisplay(x11_display_name)) == NULL)
         {
@@ -196,15 +198,15 @@ StartXGrab(void * engine)
                             break;
 
                         case ButtonPress:
-                            HandleButtonPress(&event);
+			    HandleButtonPress(&event, engine);
                             break;                            
 
                         case MotionNotify:
-                            HandleMotion(&event);
+                            HandleMotion(&event, engine);
                             break;                            
 
                         case ButtonRelease:
-                            HandleButtonRelease(&event);
+                            HandleButtonRelease(&event, engine);
                             break;
                         }
 
@@ -223,21 +225,27 @@ HandleCreate(XEvent *event)
 }
 
 void
-HandleButtonPress(XEvent *event)
+HandleButtonPress(XEvent *event, IBusHandwriteEngine * engine)
 {
     printf("received press event.\n");
+
+    PostXEvent(event, engine);
 }
 
 void
-HandleMotion(XEvent *event)
+HandleMotion(XEvent *event, IBusHandwriteEngine * engine)
 {
     printf("received motion event.\n");
+
+    PostXEvent(event, engine);
 }
 
 void
-HandleButtonRelease(XEvent *event)
+HandleButtonRelease(XEvent *event, IBusHandwriteEngine * engine)
 {
     printf("received release event.\n");
+
+    PostXEvent(event, engine);
 }
 
 void
@@ -263,11 +271,11 @@ ErrorTrapExit()
 }
 
 void
-ToggleXGrab()
+ToggleXGrab(IBusHandwriteEngine * engine)
 {
     if (is_aborted) { /* start thread. */
         is_aborted = FALSE;
-        pthread_create(&thread_id, NULL, StartXGrab, NULL);
+        pthread_create(&thread_id, NULL, StartXGrab, engine);
     } else { /* wait thread exit.*/
         is_aborted = TRUE;
         pthread_join(thread_id, NULL);

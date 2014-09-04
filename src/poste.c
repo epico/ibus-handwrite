@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <assert.h>
 #include <gtk/gtk.h>
 #include "engine.h"
@@ -71,11 +72,14 @@ handle_pointer_event(PostEvent * pe)
     event.x = event.x * width / event.width;
     event.y = event.y * height / event.height;
 
+    GdkWindow * root_window = gdk_screen_get_root_window
+	    (gdk_screen_get_default());
+
     switch (event.type) {
     case ButtonPress:
         {
             GdkCursorType ct = GDK_PENCIL;
-            gdk_window_set_cursor(gdk_x11_get_default_root_xwindow(), gdk_cursor_new(ct));
+            gdk_window_set_cursor(root_window, gdk_cursor_new(ct));
 
             engine->mouse_state = GDK_BUTTON_PRESS;
 
@@ -91,7 +95,7 @@ handle_pointer_event(PostEvent * pe)
         break;
     case ButtonRelease:
         {
-            gdk_window_set_cursor(gdk_x11_get_default_root_xwindow(), NULL);
+            gdk_window_set_cursor(root_window, NULL);
 
             engine->mouse_state = GDK_BUTTON_RELEASE;
 
@@ -132,12 +136,17 @@ handle_pointer_event(PostEvent * pe)
         assert(FALSE);
     }
 
+    free(pe);
     return FALSE;
 }
 
 gboolean
-PostXEvent(XEvent * event)
+PostXEvent(XEvent * event, IBusHandwriteEngine * engine)
 {
     PointerEvent pe = ConvertXEvent(event);
-    assert(FALSE);
+    PostEvent * ev = malloc(sizeof(PostEvent));
+    ev->event = pe;
+    ev->engine = engine;
+    gdk_threads_add_idle((GSourceFunc)handle_pointer_event, ev);
+    return TRUE;
 }

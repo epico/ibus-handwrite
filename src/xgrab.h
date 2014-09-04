@@ -14,5 +14,9 @@ typedef struct {
     int button;
 } PointerEvent;
 
+typedef struct _IBusHandwriteEngine IBusHandwriteEngine;
+
+gboolean
+PostXEvent(XEvent * event, IBusHandwriteEngine * engine);
 
 #endif
