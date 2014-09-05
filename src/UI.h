@@ -12,7 +12,7 @@ void UI_hide_ui(IBusHandwriteEngine * engine);
 void UI_cancelui(IBusHandwriteEngine* engine); //Cancel
 void regen_loopuptable(GtkWidget * widget, IBusHandwriteEngine * engine);
 
-#define INITIAL_WIDTH 390
+#define INITIAL_WIDTH 500
 #define PANELHEIGHT 90
 
 #endif /* UI_H_ */

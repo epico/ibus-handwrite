@@ -8,6 +8,8 @@
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
+#include <X11/Xlib.h>
+
 #include <libintl.h>
 #define _(String) gettext (String)
 #define gettext_noop(String) String
@@ -42,6 +44,8 @@ int main(int argc, char* argv[])
 
 	setlocale(LC_ALL, "");
 	textdomain(GETTEXT_PACKAGE);
+
+	XInitThreads();
 
 	GOptionEntry args[] =
 	{

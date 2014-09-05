@@ -62,8 +62,10 @@ handle_pointer_event(PostEvent * pe)
     IBusHandwriteEngine * engine = pe->engine;
 
     /* currently we only support the first mouse button. */
-    if (event.button != 1)
-        return FALSE;
+    if (event.button != 1) {
+	    free(pe);
+	    return FALSE;
+    }
 
     /* re-calculate positions. */
     double width = gtk_widget_get_allocated_width(engine->drawpanel);
@@ -72,11 +74,13 @@ handle_pointer_event(PostEvent * pe)
     event.x = event.x * width / event.width;
     event.y = event.y * height / event.height;
 
+    printf("event position:%lf %lf.\n", event.x, event.y);
+
     GdkWindow * root_window = gdk_screen_get_root_window
 	    (gdk_screen_get_default());
 
     switch (event.type) {
-    case ButtonPress:
+    case GDK_BUTTON_PRESS:
         {
             GdkCursorType ct = GDK_PENCIL;
             gdk_window_set_cursor(root_window, gdk_cursor_new(ct));
@@ -93,7 +97,7 @@ handle_pointer_event(PostEvent * pe)
             engine->currentstroke.points[0].y = event.y;
         }
         break;
-    case ButtonRelease:
+    case GDK_BUTTON_RELEASE:
         {
             gdk_window_set_cursor(root_window, NULL);
 
@@ -115,7 +119,7 @@ handle_pointer_event(PostEvent * pe)
             regen_loopuptable(engine->lookuppanel,engine);
         }
         break;
-    case MotionNotify:
+    case GDK_MOTION_NOTIFY:
         {
             engine->currentstroke.points
                 = g_renew(GdkPoint,engine->currentstroke.points,
