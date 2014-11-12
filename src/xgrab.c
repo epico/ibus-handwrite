@@ -2,6 +2,7 @@
 #include <X11/Xproto.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput.h>
+#include <X11/extensions/XInput2.h>
 #include <X11/extensions/XIproto.h>
 #include <X11/Xos.h>
 
@@ -35,6 +36,7 @@ void HandleCreate(XEvent *event);
 void HandleButtonPress(XEvent *event, IBusHandwriteEngine * engine);
 void HandleMotion(XEvent *event, IBusHandwriteEngine * engine);
 void HandleButtonRelease(XEvent *event, IBusHandwriteEngine * engine);
+void HandleXI2Event(XEvent *event, IBusHandwriteEngine * engine);
 void ToggleXGrab(IBusHandwriteEngine * engine);
 
 #ifndef HAVE_APP_GTK
@@ -164,12 +166,84 @@ StartXGrab(IBusHandwriteEngine * engine)
 
     ErrorTrapEnter();
 
+
+    /* register for XI2, claim we support 2.0 */
+    int major = 2,
+        minor = 0;
+    XIQueryVersion(x11_display, &major, &minor);
+
+    /* Now search for the actual device that we want. XI2 doesn't
+       actually provide all we need, so we mix XI 1.x for finding the device
+       and switching its mode, then XI2 for the events. sorry...
+    */
+    int deviceid = 0; /* for XI2 */
+    XDevice *xdevice = NULL; /* for XI 1.x calls */
+    int touchpad_type = XInternAtom(x11_display, "TOUCHPAD", True);
+
+    if (touchpad_type == None) {
+        printf("Nothing of type touchpad ever initialized\n");
+        return NULL;
+    }
+
+    XDeviceInfo *info;
+    int ndevices;
+    info = XListInputDevices(x11_display, &ndevices);
+
+    int i;
+    for (i = 0; i < ndevices; i++) {
+        const XDeviceInfo *dev = &info[i];
+
+        if (dev->type == touchpad_type) {
+            xdevice = XOpenDevice(x11_display, dev->id);
+            deviceid = dev->id;
+            printf("Using touchpad '%s'\n", dev->name);
+            break;
+        }
+    }
+
+    XFreeDeviceList(info);
+
+    if (deviceid == 0 || xdevice == NULL) {
+        printf("failed to find device\n");
+        return NULL;
+    }
+
+    /* note: this isn't needed anymore if you just want the touchpad events */
     root_window = DefaultRootWindow(x11_display);
     SetAllEvent(root_window);
 
-    XGrabButton(x11_display, AnyButton, AnyModifier, root_window, True,
-                ButtonPressMask|PointerMotionMask|ButtonReleaseMask,
-                GrabModeAsync, GrabModeAsync, None, None);
+    /* set up the XI2 event mask */
+    unsigned char evmask[XIMaskLen(XI_LASTEVENT)] = {0};
+    XISetMask(evmask, XI_ButtonPress);
+    XISetMask(evmask, XI_ButtonRelease);
+    XISetMask(evmask, XI_Motion);
+
+    XIEventMask mask;
+    mask.deviceid = deviceid; /* not really needed, ignored by XIGrabDevice */
+    mask.mask = evmask;
+    mask.mask_len = sizeof(evmask);
+
+    /* now grab the one device that we actually care about directly.
+       This will detach it from the system cursor until ungrabbed, but
+       all other devices will continue to work just fine */
+    int status;
+    status = XIGrabDevice(x11_display, deviceid, root_window,
+                          CurrentTime, None,
+                          GrabModeAsync, GrabModeAsync,
+                          False, &mask);
+    if (status != Success)
+        printf("Failed to grab device: %d\n", status);
+
+    /* ok, we have the grab on the device.
+       Now switch it to absolute mode.
+       This needs to be undone on toggle.
+       */
+    XSetDeviceMode(x11_display, xdevice, Absolute);
+
+    /* FIXME: what's missing here is to disable the touchpad's extra features
+      (software buttons, tapping, etc.). that needs to be done by hand atm
+      until we find something that's reasonable for upstream.
+     */
 
     XSync(x11_display,False);
 
@@ -205,6 +279,11 @@ StartXGrab(IBusHandwriteEngine * engine)
 
                         case ButtonRelease:
                             HandleButtonRelease(&event, engine);
+                            break;
+                        case GenericEvent:
+                            /* must be an XI2 event, we didn't register
+                               for any other generic events */
+                            HandleXI2Event(&event, engine);
                             break;
                         }
 
@@ -244,6 +323,36 @@ HandleButtonRelease(XEvent *event, IBusHandwriteEngine * engine)
     printf("received release event.\n");
 
     PostXEvent(event, engine);
+}
+
+void
+HandleXI2Event(XEvent *event, IBusHandwriteEngine *engine)
+{
+    XIDeviceEvent *xev;
+
+    printf("%s\n", __func__);
+
+    if (!XGetEventData(event->xcookie.display, &event->xcookie)) {
+        printf("error getting event data\n");
+        return;
+    }
+
+    xev = (XIDeviceEvent*)event->xcookie.data;
+
+    printf("XI2 event type: %d\n", xev->evtype);
+
+    /* for simplicity, convert the XI2 event into a core event
+       and pass it to the engine. This only converts the fields
+       that we use in ConvertXEvent */
+    XEvent fake_event;
+    fake_event.xbutton.display = xev->display;
+    fake_event.xbutton.x = xev->event_x;
+    fake_event.xbutton.y = xev->event_y;
+    fake_event.xbutton.window = xev->event;
+    /* XI2 evtypes == X11 core types for pointer events */
+    fake_event.xbutton.type = xev->evtype;
+
+    PostXEvent(&fake_event, engine);
 }
 
 void

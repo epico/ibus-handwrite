@@ -103,7 +103,7 @@ PKG_CHECK_MODULES(GTK3, [
 ])
 
 PKG_CHECK_MODULES(ALL_NEED, [
-    x11 >= 1.6 ibus-1.0 >= 1.2 gtk+-3.0 >= 3.0
+    x11 >= 1.6 ibus-1.0 >= 1.2 gtk+-3.0 >= 3.0 xi >= 1.7
 ])
 
 AM_GNU_GETTEXT([external])
